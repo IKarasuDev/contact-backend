@@ -7,31 +7,34 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Ruta base (opcional pero útil para verificar en Render)
 app.get("/", (req, res) => {
   res.send("Backend is running");
 });
 
-// Endpoint principal
 app.post("/send-email", async (req, res) => {
   const { name_user, email_user, subject, message } = req.body;
 
-  // Validación básica backend
   if (!name_user || !email_user || !subject || !message) {
     return res.status(400).json({ error: "Missing fields" });
   }
 
   try {
+    console.log("📨 Attempting to send email...");
+
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
     });
 
     await transporter.sendMail({
@@ -45,14 +48,15 @@ Message: ${message}
       `,
     });
 
+    console.log("✅ Email sent");
+
     res.status(200).json({ success: true });
   } catch (error) {
-    console.error("Email error:", error);
+    console.error("❌ Email error:", error);
     res.status(500).json({ error: "Failed to send email" });
   }
 });
 
-// 🔥 IMPORTANTE: usar puerto dinámico (Render lo requiere)
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
