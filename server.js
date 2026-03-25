@@ -7,13 +7,20 @@ dotenv.config();
 
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// Ruta base (opcional pero útil para verificar en Render)
+app.get("/", (req, res) => {
+  res.send("Backend is running");
+});
+
+// Endpoint principal
 app.post("/send-email", async (req, res) => {
   const { name_user, email_user, subject, message } = req.body;
 
-  // Validación básica backend (IMPORTANTE)
+  // Validación básica backend
   if (!name_user || !email_user || !subject || !message) {
     return res.status(400).json({ error: "Missing fields" });
   }
@@ -40,11 +47,14 @@ Message: ${message}
 
     res.status(200).json({ success: true });
   } catch (error) {
-    console.error(error);
+    console.error("Email error:", error);
     res.status(500).json({ error: "Failed to send email" });
   }
 });
 
-app.listen(3001, () => {
-  console.log("Server running on http://localhost:3001");
+// 🔥 IMPORTANTE: usar puerto dinámico (Render lo requiere)
+const PORT = process.env.PORT || 3001;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
